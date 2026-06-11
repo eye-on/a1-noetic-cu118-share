@@ -1,11 +1,16 @@
 FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
 
+SHELL ["/bin/bash", "-lc"]
+
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 ARG http_proxy
 ARG https_proxy
 ARG no_proxy
+ARG UBUNTU_MIRROR=http://archive.ubuntu.com/ubuntu
+ARG UBUNTU_SECURITY_MIRROR=http://security.ubuntu.com/ubuntu
+ARG ROS_MIRROR=http://packages.ros.org/ros/ubuntu
 
 ENV HTTP_PROXY=${HTTP_PROXY}
 ENV HTTPS_PROXY=${HTTPS_PROXY}
@@ -23,12 +28,28 @@ ENV ROS_DISTRO=noetic
 RUN printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\n' \
     > /etc/apt/apt.conf.d/80-retries
 
+RUN retry_apt_install() { \
+      local args=("$@"); \
+      for attempt in 1 2 3; do \
+        if apt-get update && apt-get install -y --no-install-recommends "${args[@]}"; then \
+          return 0; \
+        fi; \
+        apt-get -f install -y || true; \
+        dpkg --configure -a || true; \
+        rm -rf /var/lib/apt/lists/*; \
+        sleep 5; \
+      done; \
+      return 1; \
+    }; \
+    declare -f retry_apt_install > /usr/local/bin/retry_apt_install.sh
+
 RUN sed -i \
-    -e 's|http://archive.ubuntu.com/ubuntu|https://mirrors.ustc.edu.cn/ubuntu|g' \
-    -e 's|http://security.ubuntu.com/ubuntu|https://mirrors.ustc.edu.cn/ubuntu|g' \
+    -e "s|http://archive.ubuntu.com/ubuntu|${UBUNTU_MIRROR}|g" \
+    -e "s|http://security.ubuntu.com/ubuntu|${UBUNTU_SECURITY_MIRROR}|g" \
     /etc/apt/sources.list
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN source /usr/local/bin/retry_apt_install.sh \
+ && retry_apt_install \
     ca-certificates \
     curl \
     dirmngr \
@@ -48,16 +69,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
     git \
+    libarmadillo-dev \
     liblcm-dev \
     pkg-config \
  && rm -rf /var/lib/apt/lists/*
 
-RUN curl -fsSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc \
-    | gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg \
- && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] https://mirrors.ustc.edu.cn/ros/ubuntu focal main" \
+COPY ros-archive-keyring.gpg /usr/share/keyrings/ros-archive-keyring.gpg
+RUN echo "deb [arch=amd64 signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] ${ROS_MIRROR} focal main" \
     > /etc/apt/sources.list.d/ros1.list
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN source /usr/local/bin/retry_apt_install.sh \
+ && retry_apt_install \
     gazebo11 \
     libgazebo11-dev \
     ros-noetic-desktop-full \

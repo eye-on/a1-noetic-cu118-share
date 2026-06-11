@@ -1,6 +1,6 @@
-# SimEnv Shareable Container
+# SimEnv Shareable Build Context
 
-This directory contains a self-contained build context for a Linux host. The image includes:
+This directory contains a Linux-oriented build context for a shareable Docker image. The built image includes:
 
 - Ubuntu 20.04
 - ROS Noetic
@@ -9,12 +9,19 @@ This directory contains a self-contained build context for a Linux host. The ima
 - LibTorch 2.7.1 + cu118 at `/opt/libtorch`
 - SimEnv source and compiled catkin workspace at `/ws/SimEnv`
 
+This repository is not fully self-contained at Git level:
+
+- `build-image.sh` downloads the LibTorch archive from the official PyTorch CDN
+- the Docker build fetches Ubuntu and ROS packages from network repositories
+
+Those network locations are configurable through `.env` build args if the receiver needs different mirrors. The ROS signing key is vendored in this repository so image builds do not depend on fetching `ros.asc` from GitHub.
+
 ## Build
 
-If you need proxies, copy `.env.example` to `.env` and fill in the proxy variables.
+If you need proxies or alternate mirrors, copy `.env.example` to `.env` and fill in the variables.
 
 ```bash
-cd /home/owlage/a1-noetic-cu118-share
+cd a1-noetic-cu118-share
 ./build-image.sh
 ```
 
@@ -22,16 +29,30 @@ cd /home/owlage/a1-noetic-cu118-share
 
 ## Run
 
-CPU:
+The default compose file is headless and does not assume a local X11 desktop.
+
+Headless CPU:
 
 ```bash
 docker compose up -d
 ```
 
-GPU:
+Headless GPU:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+```
+
+GUI on a Linux X11 desktop:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.gui.yml up -d
+```
+
+GUI with GPU:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.gui.yml -f docker-compose.gpu.yml up -d
 ```
 
 ## Enter
@@ -44,17 +65,23 @@ The shell already sources ROS and the SimEnv workspace.
 
 ## Start Simulation
 
-Inside the container:
+Inside the container, the default startup is headless:
 
 ```bash
 cd /ws/SimEnv
-./auto.sh
+GUI=false ./auto.sh
 ```
 
 Or from the host:
 
 ```bash
-docker exec simenv-a1-share bash -lc 'cd /ws/SimEnv && ./auto.sh'
+docker exec simenv-a1-share bash -lc 'cd /ws/SimEnv && GUI=false ./auto.sh'
+```
+
+If you intentionally started the GUI compose override and want the Gazebo desktop window:
+
+```bash
+docker exec simenv-a1-share bash -lc 'cd /ws/SimEnv && GUI=true ./auto.sh'
 ```
 
 ## Output
@@ -70,7 +97,7 @@ Runtime output is persisted to:
 For Git-based sharing, commit and push this directory without the large LibTorch zip:
 
 ```bash
-cd /home/owlage/a1-noetic-cu118-share
+cd a1-noetic-cu118-share
 git init
 git add .
 git commit -m "Add self-contained SimEnv Docker build context"
@@ -106,3 +133,12 @@ The host must have NVIDIA drivers and `nvidia-container-toolkit` configured. Use
 ```bash
 bash ./setup_nvidia_container_toolkit.sh
 ```
+
+## Licensing Note
+
+This build context does not relicense upstream SimEnv.
+
+- the upstream source tree includes an AFL 3.0 license file in `SimEnv/LICENSE`
+- the upstream SimEnv README also contains competition-specific wording about intended use
+
+If you plan to redistribute this outside your own team or event context, review those upstream terms with the project owner before publishing.

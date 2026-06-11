@@ -11,19 +11,15 @@ services:
         http_proxy: ${http_proxy:-}
         https_proxy: ${https_proxy:-}
         no_proxy: ${no_proxy:-}
+        UBUNTU_MIRROR: ${UBUNTU_MIRROR:-http://archive.ubuntu.com/ubuntu}
+        UBUNTU_SECURITY_MIRROR: ${UBUNTU_SECURITY_MIRROR:-http://security.ubuntu.com/ubuntu}
+        ROS_MIRROR: ${ROS_MIRROR:-http://packages.ros.org/ros/ubuntu}
     image: ${SIMENV_IMAGE:-simenv-a1-cu118-share:latest}
     container_name: ${SIMENV_CONTAINER:-simenv-a1-share}
-    network_mode: host
-    environment:
-      DISPLAY: ${DISPLAY:-:0}
-      QT_X11_NO_MITSHM: "1"
-      XAUTHORITY: /root/.Xauthority
     working_dir: /ws/SimEnv
     stdin_open: true
     tty: true
     volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - ${HOME}/.Xauthority:/root/.Xauthority:ro
       - ./output/generated_building:/ws/SimEnv/generated_building
       - ./output/logs:/ws/SimEnv/logs
       - ./output/results:/ws/SimEnv/results

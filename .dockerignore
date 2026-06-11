@@ -1,6 +1,7 @@
 output
 .env
 *.tar
+*.tar.gz
 SimEnv/.git
 SimEnv/build
 SimEnv/devel
@@ -9,3 +10,10 @@ SimEnv/logs
 SimEnv/results
 SimEnv/**/__pycache__
 SimEnv/.vscode
+SimEnv/docs
+SimEnv/README.md
+SimEnv/LICENSE
+SimEnv/.catkin_workspace
+SimEnv/src/unitree_guide/unitree_ros_to_real/unitree_legged_sdk/python_wrapper/third-party/pybind11/.github
+SimEnv/src/unitree_guide/unitree_ros_to_real/unitree_legged_sdk/python_wrapper/third-party/pybind11/docs
+SimEnv/src/unitree_guide/unitree_ros_to_real/unitree_legged_sdk/python_wrapper/third-party/pybind11/tests

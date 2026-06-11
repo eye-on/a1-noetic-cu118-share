@@ -399,7 +399,7 @@ void State_RL::open_amp_save_file()
     std::tm* currentTm = std::localtime(&cTime);
     // 构建文件名，格式为 systime + 年-月-日.txt
     std::ostringstream fileNameStream;
-    fileNameStream << "/home/chy/log/gazebo/" << angle_names[_cnt];
+    fileNameStream << "/ws/SimEnv/logs/gazebo/" << angle_names[_cnt];
     std::string fileName = fileNameStream.str();
     // 以追加模式打开文件
     outfile = std::ofstream(fileName, std::ios::out | std::ios::app);

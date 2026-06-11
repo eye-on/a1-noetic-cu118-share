@@ -1,4 +1,5 @@
 .env
+.codex
 *.tar
 *.tar.gz
 output/generated_building/*
