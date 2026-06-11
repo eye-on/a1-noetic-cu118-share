@@ -1,0 +1,17 @@
+.env
+*.tar
+*.tar.gz
+output/generated_building/*
+output/logs/*
+output/results/*
+!output/generated_building/.gitkeep
+!output/logs/.gitkeep
+!output/results/.gitkeep
+vendor/libtorch-cxx11-abi-shared-with-deps-2.7.1+cu118.zip
+SimEnv/build
+SimEnv/devel
+SimEnv/generated_building
+SimEnv/logs
+SimEnv/results
+SimEnv/**/__pycache__
+SimEnv/.vscode

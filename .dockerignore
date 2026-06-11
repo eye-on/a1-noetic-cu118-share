@@ -1,0 +1,11 @@
+output
+.env
+*.tar
+SimEnv/.git
+SimEnv/build
+SimEnv/devel
+SimEnv/generated_building
+SimEnv/logs
+SimEnv/results
+SimEnv/**/__pycache__
+SimEnv/.vscode
